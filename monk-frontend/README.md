@@ -23,155 +23,152 @@ This project is a frontend implementation of a **bundle / offer product builder*
 
 The focus of this task was handling **complex UI state**, especially around product selection, variant management, and edit flows, while keeping the implementation simple and readable.
 
----
+# Frontend Developer Task – Monk Commerce
 
-## What the app does
+This project implements the **bundle product creation flow** for an e-commerce admin panel, based on the provided task description, Figma designs, and demo video.
 
--   Allows adding **up to 4 products** to a bundle
--   Each product can have **one or more variants**
--   Products and variants can be:
-
-    -   Selected
-    -   Edited
-    -   Reordered using drag & drop
-    -   Removed individually
-
--   Discounts can be applied per product
--   Previously selected products and variants remain selected when editing
-
-All logic is handled on the frontend using local state.
+The goal was to allow a store owner to create and manage a bundle of products (up to 4), configure discounts, and control product variants in a clean and intuitive way.
 
 ---
 
-## Key interactions & behavior
+## 🚀 Live Demo
 
-### Product & Variant Selection
+**Netlify URL:** _(add your link here)_
 
--   Clicking a **product checkbox** selects all its variants
--   Clicking a **variant checkbox** automatically selects the parent product
--   Variants can be individually toggled on or off
-
-### Edit Flow
-
--   Clicking the ✏️ edit icon opens the product picker
--   Existing selections are **pre-filled**
--   Users can add new variants without losing previously selected ones
-
-This was one of the more complex parts of the task and required careful state handling to avoid accidental resets.
+**GitHub Repository:** _(add your repo link here)_
 
 ---
 
-### Variant Handling
+## 🧩 Features Implemented
 
--   Selected variants are shown under each product
--   Variants can be:
+### Product List
 
-    -   Reordered
-    -   Removed using the ❌ icon
-
--   Variant order is preserved across edits
-
----
-
-### Discounts
-
--   Discounts are optional per product
--   Supports both:
+-   Add up to **4 products** to a bundle (hard limit enforced).
+-   Inline error message shown if the user tries to add more than 4 products.
+-   Products can be **reordered using drag and drop**.
+-   Products can be removed using the **“X” icon** (hidden when only one product exists).
+-   Supports:
 
     -   Percentage discount
     -   Flat discount
 
--   Discount state remains intact when products are edited or reordered
+-   Variants can be shown or hidden per product.
+-   If a product has only **one variant**, the show/hide variants option is not displayed.
 
 ---
 
-## Pagination (Mocked)
+### Product Picker (Modal)
 
-The product picker implements **scroll-based pagination** using mocked data:
+-   Opens when clicking the **edit icon** on a product.
+-   Supports:
 
--   Initially loads 10 products
--   Loads additional products as the user scrolls
--   Pagination resets when searching
+    -   Searching products by name
+    -   Selecting **multiple products and variants**
 
-This mirrors real API-based pagination behavior and can be easily replaced with backend pagination when integrated.
+-   Selecting a product auto-selects **all its variants**.
+-   Selecting/deselecting variants works independently.
+-   When confirmed:
 
----
+    -   The edited product is **replaced** with the newly selected products (as per task requirement).
 
-## Component Overview
+#### Replacement Example:
 
-### `ProductList`
+If the list is:
 
--   Maintains the main list of selected products
--   Handles adding new product slots (up to 4)
--   Renders individual product rows
-
-### `ProductItem`
-
--   Represents a single selected product
--   Handles:
-
-    -   Edit modal
-    -   Discount logic
-    -   Variant visibility
-    -   Drag & drop reordering
-
-### `ProductPicker`
-
--   Modal used to select products and variants
--   Handles:
-
-    -   Search
-    -   Selection logic
-    -   Scroll-based pagination
-
--   Returns selected products and variants back to the list
-
-### `VariantItem`
-
--   Displays individual variants
--   Supports reordering and removal
-
----
-
-## Tech Stack
-
--   React
--   JavaScript (ES6+)
--   CSS
--   No external UI or drag-and-drop libraries
-
-The goal was to keep dependencies minimal and focus on interaction logic.
-
----
-
-## Trade-offs & Notes
-
--   Product data is mocked (no backend/API integration)
--   State resets on page refresh
--   UI styling is functional but not pixel-perfect
--   Focus was placed on correctness and interaction over visual polish
-
-If this were production code, the next steps would be:
-
--   API integration
--   Better accessibility
--   Unit tests for edit and selection flows
--   Extracting complex logic into reusable hooks
-
----
-
-## How to run the project
-
-```bash
-npm install
-npm run dev
+```
+Product 1, Product 2, Product 3
 ```
 
-Open the app in the browser using the local development URL.
+and Product 2 is edited and replaced with Product 4 & Product 5, the final list becomes:
+
+```
+Product 1, Product 4, Product 5, Product 3
+```
 
 ---
 
-## Final thoughts
+### Scroll-Based Pagination (Mocked)
 
-This task was primarily about **state management and user interaction**, especially handling edits without breaking existing selections.
-The implementation aims to balance correctness, readability, and realistic UX behavior within a limited scope.
+-   Implemented **scroll-based pagination** inside the product picker.
+-   Initially loads **10 products**.
+-   Loads the next set automatically when scrolling to the bottom.
+-   Implemented using in-memory data to simulate real API pagination.
+
+---
+
+### Add Product Button
+
+-   Adds an empty product row at the end of the list.
+-   Prevents adding more than **4 products**.
+-   Displays a clear message when the limit is exceeded.
+
+---
+
+## 📦 Data Handling (Important Note)
+
+The provided API requires an `x-api-key`, which was not available during development.
+
+To keep the flow functional and demonstrate all required behaviors, I used **mocked product data (`DUMMY_PRODUCTS`)** that matches the API response structure:
+
+-   Product
+-   Variants
+-   Prices
+-   Images (optional)
+
+This allowed:
+
+-   Search
+-   Variant selection
+-   Pagination behavior
+-   Product replacement logic
+
+The code structure is designed so the mocked data can be **easily replaced with live API calls** once the API key is available.
+
+---
+
+## 🧠 Thought Process & Design Decisions
+
+-   **State-driven UI:**
+    The entire flow is driven by local React state to keep interactions predictable and easy to debug.
+
+-   **Product replacement logic:**
+    Instead of mutating deeply nested state, products are replaced using array `splice`, which keeps ordering intact and matches the exact task requirement.
+
+-   **Pagination without API:**
+    Since real pagination depends on backend support, a fake scroll-based pagination was implemented to closely mirror real-world behavior.
+
+-   **User feedback first:**
+    Clear messages are shown when:
+
+    -   Max product limit is reached
+    -   No variants are selected
+    -   Invalid actions are attempted
+
+-   **Edge cases handled:**
+
+    -   Prevent duplicate products
+    -   Preserve product order
+    -   Handle single-variant products gracefully
+
+---
+
+## 🛠 Tech Stack
+
+-   React (Functional Components + Hooks)
+-   Plain CSS
+-   No external UI libraries (kept intentionally simple)
+
+---
+
+## ⚠️ Known Limitations
+
+-   Uses mocked data instead of live API due to missing API key.
+-   Pricing and stock values are static (can be extended easily).
+-   No backend persistence (out of scope for this task).
+
+---
+
+## ✅ Conclusion
+
+This implementation focuses on **clarity, correctness, and usability**, closely following the provided design and functional requirements.
+The structure allows easy extension for real API integration and additional validations if needed.
