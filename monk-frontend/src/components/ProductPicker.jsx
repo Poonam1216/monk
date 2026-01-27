@@ -1,35 +1,66 @@
 import { useEffect, useRef, useState } from "react";
-import { DUMMY_PRODUCTS } from "../data/products";
+import { fetchProducts } from "../api/product";
 
 const PAGE_SIZE = 10;
+
 export default function ProductPicker({ onClose, onSelect, initialSelected }) {
 	const [selected, setSelected] = useState(() => initialSelected || {});
 	const [search, setSearch] = useState("");
 
-	const [page, setPage] = useState(1);
+	const [products, setProducts] = useState([]);
+	const [page, setPage] = useState(0);
+	const [loading, setLoading] = useState(false);
+	const [hasMore, setHasMore] = useState(true);
 
 	const listRef = useRef(null);
 
-	const filtered = DUMMY_PRODUCTS.filter((p) =>
-		p.title.toLowerCase().includes(search.toLowerCase())
-	);
-
-	const visibleProducts = filtered.slice(0, page * PAGE_SIZE);
+	/* ---------------- FETCH PRODUCTS ---------------- */
 
 	useEffect(() => {
-		setPage(1);
+		// reset when search changes
+		setProducts([]);
+		setPage(0);
+		setHasMore(true);
+		loadProducts(true);
 	}, [search]);
+
+	async function loadProducts(reset = false) {
+		if (loading || !hasMore) return;
+
+		setLoading(true);
+		try {
+			const data = await fetchProducts({
+				search,
+				page: reset ? 0 : page,
+				limit: PAGE_SIZE,
+			});
+
+			setProducts((prev) => (reset ? data : [...prev, ...data]));
+
+			if (data.length < PAGE_SIZE) {
+				setHasMore(false);
+			}
+
+			setPage((prev) => prev + 1);
+		} catch (err) {
+			console.error("Failed to load products", err);
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	/* ---------------- SCROLL HANDLER ---------------- */
 
 	function handleScroll() {
 		const el = listRef.current;
-		if (!el) return;
+		if (!el || loading || !hasMore) return;
 
-		const isBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 5;
-
-		if (isBottom && visibleProducts.length < filtered.length) {
-			setPage((prev) => prev + 1);
+		if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) {
+			loadProducts();
 		}
 	}
+
+	/* ---------------- SELECTION LOGIC ---------------- */
 
 	function toggleProduct(product) {
 		setSelected((prev) => {
@@ -78,6 +109,8 @@ export default function ProductPicker({ onClose, onSelect, initialSelected }) {
 		onSelect(result);
 	}
 
+	/* ---------------- UI ---------------- */
+
 	return (
 		<div className="picker-backdrop">
 			<div className="picker-modal">
@@ -101,7 +134,7 @@ export default function ProductPicker({ onClose, onSelect, initialSelected }) {
 					onScroll={handleScroll}
 					style={{ maxHeight: 400, overflowY: "auto" }}
 				>
-					{visibleProducts.map((product) => {
+					{products.map((product) => {
 						const selectedProduct = selected[product.id];
 						const selectedVariants =
 							selectedProduct?.variants || [];
@@ -143,7 +176,7 @@ export default function ProductPicker({ onClose, onSelect, initialSelected }) {
 						);
 					})}
 
-					{visibleProducts.length < filtered.length && (
+					{loading && (
 						<div
 							style={{
 								padding: 12,
@@ -151,7 +184,7 @@ export default function ProductPicker({ onClose, onSelect, initialSelected }) {
 								color: "#666",
 							}}
 						>
-							Loading more products...
+							Loading products...
 						</div>
 					)}
 				</div>

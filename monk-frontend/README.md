@@ -168,6 +168,9 @@ The code structure is designed so the mocked data can be **easily replaced with 
 
 ---
 
+API Integration:
+The product picker is now integrated with the provided Monk Commerce products API using the supplied API key. Products are fetched with search and scroll-based pagination, matching the expected backend behavior.
+
 ## ✅ Conclusion
 
 This implementation focuses on **clarity, correctness, and usability**, closely following the provided design and functional requirements.
